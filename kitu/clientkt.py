@@ -24,13 +24,13 @@ from ragas.metrics import (
 )
 
 # Base configuration
-BASE_DIR = Path("./finance_benchmark")
+BASE_DIR = Path("./finance")
 QA_DATASET = BASE_DIR / "tatdqa_dataset.json"  # or .json
-METRIC_INPUT = BASE_DIR / "tatdqa-qa-dataset-t3-l-unst.json"
+METRIC_INPUT = BASE_DIR / "tatdqa-qa-dataset-docling-para-l-unst.json"
 llm = ChatOpenAI(model="gpt-4o-mini")
 # llm = ChatOllama(model="llama3.2-vision")
 evaluator_llm = LangchainLLMWrapper(llm)
-PATHWAY_PORT = 8123
+PATHWAY_PORT = 8765
 PATHWAY_HOST = "127.0.0.1"
 
 client = VectorStoreClient(
@@ -148,9 +148,11 @@ def load_or_create_results(data: list, max_samples: int = 5) -> dict:
     }
 
     # Process your JSON data
+    i = 0
     for item in data:
         for question in item["questions"]:
             context = ""
+    
             # Get RAG response for this question
             retireved_contexts = []
             docs = client(question["question"])
@@ -201,10 +203,10 @@ def evaluate_rag():
     # Get or create results
     metrics_dict = load_or_create_results(test_data, -1)
     mod_dict = {
-        "user_input": metrics_dict["user_input"][0:5],
-        "response": metrics_dict["response"][0:5],
-        "retrieved_contexts": metrics_dict["retrieved_contexts"][0:5],
-        "ground_truth": metrics_dict["ground_truth"][0:5],
+        "user_input": metrics_dict["user_input"][0:50],
+        "response": metrics_dict["response"][0:50],
+        "retrieved_contexts": metrics_dict["retrieved_contexts"][0:50],
+        "ground_truth": metrics_dict["ground_truth"][0:50],
     }
 
     # Convert to Dataset for Ragas
@@ -236,14 +238,14 @@ def evaluate_rag():
         Faithfulness(),  # Checks if answer is supported by context
     ]
     results = []
-    # results = evaluate(
-    #     llm=evaluator_llm,
-    #     dataset=dataset,
-    #     metrics=metrics,
-    # )
-    # df = results.to_pandas()
-    # df.to_json(BASE_DIR / "score0_50_ada_002_unstr2222.json")
-    # df.to_csv(BASE_DIR / "score0_50_ada_002_unstr2222.csv", index=False)
+    results = evaluate(
+        llm=evaluator_llm,
+        dataset=dataset,
+        metrics=metrics,
+    )
+    df = results.to_pandas()
+    df.to_json(BASE_DIR / "scoretqda-semanticmarkdown-unstruct.json")
+    df.to_csv(BASE_DIR / "scoretqda-semanticmarkdown-unstruct.csv", index=False)
 
     # Save evaluation results
     # eval_results_file = BASE_DIR / "evaluation_results.json"

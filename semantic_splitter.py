@@ -48,6 +48,7 @@ class SemanticSplitterPathway(SemanticSplitterNodeParser):
     breakpoint_threshold_amount: Optional[float]
     sentence_splitter: Callable[[str], List[str]] = split_by_spacy
     minimum_chunk_size: int = 60
+    buffer_size: int = 2
 
     def _get_threshold(self, distances: list[float]) -> float:
         if self.breakpoint_threshold_amount is None:
@@ -132,8 +133,8 @@ class SemanticSplitterPathway(SemanticSplitterNodeParser):
 class SemanticSplitterPathway(UDF):
     def __init__(
         self,
-        breakpoint_threshold_type: BreakpointThresholdType = "percentile",
-        breakpoint_threshold_amount: Optional[float] = 95,
+        breakpoint_threshold_type: BreakpointThresholdType = "gradient",
+        breakpoint_threshold_amount: Optional[float] = 1.2,
         minimum_chunk_size: int = 60,
         sentence_splitter: Callable[[str], List[str]] = split_by_spacy,
         splitter=SemanticSplitterPathway,
@@ -155,6 +156,7 @@ class SemanticSplitterPathway(UDF):
         doc = Document(text=txt)
         chunks = self.splitter.get_nodes_from_documents([doc])
         splits = []
+        print(f"dihar aya {len(chunks)}")
         for chunk in chunks:
             splits.append((chunk.get_text(), {}))
         return splits

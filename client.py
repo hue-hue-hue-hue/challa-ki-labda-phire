@@ -6,16 +6,18 @@ import getpass
 import json
 from ragas import evaluate
 from langchain_ollama import ChatOllama
+from langchain_openai import ChatOpenAI
 
-if "GROQ_API_KEY" not in os.environ:
-    os.environ["GROQ_API_KEY"] = getpass.getpass("Enter your Groq API key: ")
-llm = ChatGroq(
-    model="mixtral-8x7b-32768",
-    temperature=0,
-    max_tokens=None,
-    timeout=None,
-    max_retries=2,
-)
+# if "GROQ_API_KEY" not in os.environ:
+#     os.environ["GROQ_API_KEY"] = getpass.getpass("Enter your Groq API key: ")
+# llm = ChatGroq(
+#     model="mixtral-8x7b-32768",
+#     temperature=0,
+#     max_tokens=None,
+#     timeout=None,
+#     max_retries=2,
+# )
+llm = ChatOpenAI(model="gpt-4o")
 # llm = ChatOllama(model="llama3.1")
 evaluator_llm = LangchainLLMWrapper(llm)
 
@@ -40,8 +42,10 @@ metrics_dict: dict = {
 }
 for i, item in enumerate(data):
     context = ""
+    if i == 1:
+        break
     question = item["question"]
-    docs = client(question)
+    docs = client("Our common stock is listed on t")
     retireved_contexts = []
     for doc in docs:
         context += doc["text"] + "/n/n"
@@ -97,6 +101,3 @@ metrics_dict = evaluate(
     dataset=dataset,
     metrics=metrics,
 )
-
-print(metrics_dict)
-

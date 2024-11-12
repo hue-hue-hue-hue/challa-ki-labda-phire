@@ -38,26 +38,24 @@ class ExperimentalMarkdownSyntaxTextSplitter:
 
         self.return_each_line = return_each_line
 
-    def transform_documents(self, text: List[Document]):
+    def transform_documents(self, text: Document):
+        self.chunks = self.split(text.page_content)
         final = []
-        for d in text:
-            self.chunks = self.split(d.page_content)
-            text_splitter = SemanticChunker(
-                embeddings=OpenAIEmbeddings(model="text-embedding-3-small"),
-            )
+        text_splitter = SemanticChunker(
+            embeddings=OpenAIEmbeddings(model="text-embedding-3-small"),
+        )
 
-            for chunk in self.chunks:
-                if not chunk.page_content.strip():
-                    continue
-                split_content = text_splitter.split_text(chunk.page_content)
-                for i in range(len(split_content)):
-                    if split_content[i] and len(split_content[i]) > 0:
-                        final.append(
-                            Document(
-                                page_content=split_content[i], metadata=chunk.metadata
-                            )
+        for chunk in self.chunks:
+            if not chunk.page_content.strip():
+                continue
+            split_content = text_splitter.split_text(chunk.page_content)
+            for i in range(len(split_content)):
+                if split_content[i] and len(split_content[i]) > 0:
+                    final.append(
+                        Document(
+                            page_content=split_content[i], metadata=chunk.metadata
                         )
-
+                    )
         return final
 
     def split(self, text: str) -> List[Document]:
@@ -213,8 +211,10 @@ class MarkdownSplitter(pw.UDF):
 
     def __wrapped__(self, txt: str, **kwargs) -> list[tuple[str, dict]]:
         doc = Document(page_content=txt)
-        chunks = self.splitter.transform_documents([doc])
+        chunks = self.splitter.transform_documents(doc)
         splits = []
         for chunk in chunks:
             splits.append((chunk.page_content, {}))
+        print(f"idhanr aya chunks {len(splits)}")
+        self.splitter.chunks = []
         return splits
