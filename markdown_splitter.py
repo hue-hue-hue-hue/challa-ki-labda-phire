@@ -5,6 +5,8 @@ from langchain_core.documents import Document
 from langchain_text_splitters.base import Language
 from langchain_experimental.text_splitter import SemanticChunker
 from langchain_huggingface.embeddings import HuggingFaceEmbeddings
+import pathway as pw
+
 
 class ExperimentalMarkdownSyntaxTextSplitter:
     DEFAULT_HEADER_KEYS = {
@@ -35,22 +37,30 @@ class ExperimentalMarkdownSyntaxTextSplitter:
 
         self.return_each_line = return_each_line
 
-    def transform_documents(self, text: List[Document])->List[str]:
+    def transform_documents(self, text: List[Document]) -> List[str]:
         final = []
-        for d in text:    
+        for d in text:
             self.chunks = self.split(d.page_content)
-    #        print(self.chunks)
-            text_splitter = SemanticChunker(embeddings = HuggingFaceEmbeddings(model_name="Snowflake/snowflake-arctic-embed-m"))
-            
+            #        print(self.chunks)
+            text_splitter = SemanticChunker(
+                embeddings=HuggingFaceEmbeddings(
+                    model_name="Snowflake/snowflake-arctic-embed-m"
+                )
+            )
+
             for chunk in self.chunks:
-    #            print(f"Chunk content: {chunk.page_content}")
+                #            print(f"Chunk content: {chunk.page_content}")
                 if not chunk.page_content.strip():
                     continue
                 split_content = text_splitter.split_text(chunk.page_content)
-    #            print(split_content)
+                #            print(split_content)
                 for i in range(len(split_content)):
                     if split_content[i] and len(split_content[i]) > 0:
-                        final.append(Document(page_content= split_content[i], metadata= chunk.metadata))
+                        final.append(
+                            Document(
+                                page_content=split_content[i], metadata=chunk.metadata
+                            )
+                        )
 
         return final
 
@@ -115,32 +125,29 @@ class ExperimentalMarkdownSyntaxTextSplitter:
             if self._match_code(raw_line):
                 return chunk
         return ""
-    
+
     def _resolve_table_chunk(self, current_line: str, raw_lines: List[str]) -> Document:
         """Process a markdown table and return it as a Document."""
         table_lines = [current_line.rstrip()]
-        
+
         # Collect all table lines
         while raw_lines and self._match_table(raw_lines[0]):
             table_lines.append(raw_lines.pop(0).rstrip())
-            
+
         # Parse table components
         if len(table_lines) < 3:  # Need header, separator, and at least one row
             return Document(page_content="".join(table_lines))
-            
+
         # Extract headers and clean them
-        headers = [
-            cell.strip() 
-            for cell in table_lines[0].split('|')[1:-1]
-        ]
-        
+        headers = [cell.strip() for cell in table_lines[0].split("|")[1:-1]]
+
         # Skip separator line
         rows = []
         for line in table_lines[2:]:
             if line.strip():
-                row = [cell.strip() for cell in line.split('|')[1:-1]]
+                row = [cell.strip() for cell in line.split("|")[1:-1]]
                 rows.append(row)
-        
+
         # Create document with appropriate content and metadata
         if self.convert_tables:
             # Convert to natural language format
@@ -153,7 +160,7 @@ class ExperimentalMarkdownSyntaxTextSplitter:
             content = "\n".join(content_lines)
         else:
             content = "".join(table_lines)
-        
+
         # Create document with table metadata
         doc = Document(
             page_content=content,
@@ -162,15 +169,15 @@ class ExperimentalMarkdownSyntaxTextSplitter:
                 "table_data": {
                     "headers": headers,
                     "rows": rows,
-                }
-            }
+                },
+            },
         )
-        
+
         for depth, value in self.current_header_stack:
             header_key = self.splittable_headers.get("#" * depth)
             doc.metadata[header_key] = value
-            
-        return doc 
+
+        return doc
 
     def _complete_chunk_doc(self) -> None:
         chunk_content = self.current_chunk.page_content
@@ -197,7 +204,20 @@ class ExperimentalMarkdownSyntaxTextSplitter:
             re.match(rule, line) for rule in [r"^\*\*\*+\n", r"^---+\n", r"^___+\n"]
         ]
         return next((match for match in matches if match), None)
+
     def _match_table(self, line: str) -> Union[re.Match, None]:
         """Match a table line in markdown format."""
-        return re.match(r'^\s*\|.*\|\s*$', line)
-    
+        return re.match(r"^\s*\|.*\|\s*$", line)
+
+
+class MarkdownSplitter(pw.UDF):
+    def __init__(self):
+        self.splitter = ExperimentalMarkdownSyntaxTextSplitter()
+
+    def __wrapped__(self, txt: str, **kwargs) -> list[tuple[str, dict]]:
+        doc = Document(page_content=txt)
+        chunks = self.splitter.transform_documents([doc])
+        splits = []
+        for chunk in chunks:
+            splits.append((chunk, {}))
+        return splits
