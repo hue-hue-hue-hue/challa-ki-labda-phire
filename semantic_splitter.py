@@ -1,12 +1,16 @@
 from pathway import UDF
 from dataclasses import dataclass
 from typing import Callable, List, Literal, Optional, TypedDict
-
+import pathway as pw
 import numpy as np
 import spacy
 from llama_index.core.node_parser import SemanticSplitterNodeParser
 from llama_index.core import Document
-from llama_index.core.schema import TextNode, BaseNode
+
+from llama_index.embeddings.openai import OpenAIEmbedding
+
+
+embed_model1 = OpenAIEmbedding()
 
 @dataclass
 class SentenceCombination(TypedDict):
@@ -38,35 +42,12 @@ def split_by_spacy(text: str) -> List[str]:
     return [sent.text for sent in doc.sents]
 
 
-class SemanticSplitter(SemanticSplitterNodeParser, UDF):
+class SemanticSplitterPathway(SemanticSplitterNodeParser):
 
     breakpoint_threshold_type: BreakpointThresholdType
     breakpoint_threshold_amount: Optional[float]
     sentence_splitter: Callable[[str], List[str]] = split_by_spacy
     minimum_chunk_size: int = 60
-
-    def __init__(
-        self,
-        breakpoint_threshold_type: BreakpointThresholdType = "percentile",
-        breakpoint_threshold_amount: Optional[float] = None,
-        sentence_splitter: Callable[[str], List[str]] = split_by_spacy,
-        minimum_chunk_size: int = 60,
-    ):
-        super().__init__()
-        self.breakpoint_threshold_type = breakpoint_threshold_type
-        self.breakpoint_threshold_amount = breakpoint_threshold_amount
-        self.sentence_splitter = sentence_splitter
-        self.minimum_chunk_size = minimum_chunk_size
-        
-    def __wrapped__(self, txt: str, **kwargs) -> list[tuple[str, dict]]:
-        documet = Document(text=txt)
-        chunks = self.get_nodes_from_documents([documet])
-        # make shitty chunk dict tuple next to match pathway
-        splits = []
-        for chunk in chunks:
-            splits.append((chunk.get_text(), {}))
-        
-        return splits
 
     def _get_threshold(self, distances: list[float]) -> float:
         if self.breakpoint_threshold_amount is None:
@@ -137,3 +118,43 @@ class SemanticSplitter(SemanticSplitterNodeParser, UDF):
             chunks = [" ".join([s["sentence"] for s in sentences])]
 
         return chunks
+
+    def __call__(self, text: pw.ColumnExpression, **kwargs) -> pw.ColumnExpression:
+        """Split given strings into smaller chunks.
+
+        Args:
+            - messages (ColumnExpression[str]): Column with texts to be split
+            - **kwargs: override for defaults set in the constructor
+        """
+        return super().__call__(text, **kwargs)
+
+
+class SemanticSplitterPathway(UDF):
+    def __init__(
+        self,
+        breakpoint_threshold_type: BreakpointThresholdType = "percentile",
+        breakpoint_threshold_amount: Optional[float] = 95,
+        minimum_chunk_size: int = 60,
+        sentence_splitter: Callable[[str], List[str]] = split_by_spacy,
+        splitter=SemanticSplitterPathway,
+    ):
+        super().__init__()
+        self.breakpoint_threshold_type = breakpoint_threshold_type
+        self.breakpoint_threshold_amount = breakpoint_threshold_amount
+        self.minimum_chunk_size = minimum_chunk_size
+        self.sentence_splitter = sentence_splitter
+        self.splitter = splitter(
+            breakpoint_threshold_type=self.breakpoint_threshold_type,
+            breakpoint_threshold_amount=self.breakpoint_threshold_amount,
+            minimum_chunk_size=self.minimum_chunk_size,
+            sentence_splitter=self.sentence_splitter,
+            embed_model=embed_model1,
+        )
+
+    def __wrapped__(self, txt: str, **kwargs) -> list[tuple[str, dict]]:
+        doc = Document(text=txt)
+        chunks = self.splitter.get_nodes_from_documents([doc])
+        splits = []
+        for chunk in chunks:
+            splits.append((chunk.get_text(), {}))
+        return splits
