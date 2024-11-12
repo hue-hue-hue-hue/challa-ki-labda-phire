@@ -26,7 +26,7 @@ from ragas.metrics import (
 # Base configuration
 BASE_DIR = Path("./finance")
 QA_DATASET = BASE_DIR / "tatdqa_dataset.json"  # or .json
-METRIC_INPUT = BASE_DIR / "tatdqa-qa-dataset-docling-para-l-unst.json"
+METRIC_INPUT = BASE_DIR / "tatdqa-qa-dataset-semanticmarkdown-para-l-unst.json"
 llm = ChatOpenAI(model="gpt-4o-mini")
 # llm = ChatOllama(model="llama3.2-vision")
 evaluator_llm = LangchainLLMWrapper(llm)
