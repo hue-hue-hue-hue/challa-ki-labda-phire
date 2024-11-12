@@ -214,14 +214,6 @@ def evaluate_rag():
 
     # Define metrics
 
-    # metrics = [
-    #     LLMContextRecall(),
-    #     LLMContextPrecisionWithReference(),
-    #     ContextPrecision(),
-    #     ContextEntityRecall(),
-    #     Faithfulness(),
-    #     ResponseRelevancy(),
-    # ]
     from ragas.metrics import (
         AnswerCorrectness,
         AnswerSimilarity,
@@ -231,12 +223,18 @@ def evaluate_rag():
     )
 
     metrics = [
-        AnswerCorrectness(),  # Measures numerical accuracy
-        AnswerSimilarity(),  # Compares answer similarity with ground truth
-        ContextPrecision(),  # Measures relevance of retrieved context
-        ContextRecall(),  # Measures if important info was retrieved
-        Faithfulness(),  # Checks if answer is supported by context
+        LLMContextRecall(),
+        LLMContextPrecisionWithReference(),
+        Faithfulness(),
+        ResponseRelevancy(),
     ]
+    # metrics = [
+    #     AnswerCorrectness(),  # Measures numerical accuracy
+    #     AnswerSimilarity(),  # Compares answer similarity with ground truth
+    #     ContextPrecision(),  # Measures relevance of retrieved context
+    #     ContextRecall(),  # Measures if important info was retrieved
+    #     Faithfulness(),  # Checks if answer is supported by context
+    # ]
     results = []
     results = evaluate(
         llm=evaluator_llm,
