@@ -30,7 +30,6 @@ def docling_parser(content: bytes):
     loop = asyncio.get_event_loop()
     conv_results = loop.run_until_complete(doc_converter.convert(docs, raises_on_error=False))
     result = loop.run_until_complete(conv_results.document.export_to_markdown())
-    return " salkhfsahdf"
     return result
 
 

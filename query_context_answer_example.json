@@ -1,0 +1,14 @@
+[
+    {
+        "question": "which method of forecasting uses averages to predict future weather?",
+        "sources": [
+            "clapnq---6401197308716204890"
+        ],
+        "supporting_facts": [
+            "Seasonality is a characteristic of a time series in which the data experiences regular and predictable changes which recur every calendar year .",
+            "Any predictable change or pattern in a time series that recurs or repeats over a one - year period can be said to be seasonal .",
+            "In such situations , the forecasting procedure calculates the seasonal index of the `` season '' -- seven seasons , one for each day -- which is the ratio of the average demand of that season ( which is calculated by Moving Average or Exponential Smoothing using historical data corresponding only to that season ) to the average demand across all seasons ."
+        ],
+        "answer": "Seasonality, in which data experiences regular and predictable changes which recur every calendar year, is the method of forecasting, where averages are used to calculate the seasonal index of the season."
+    }
+]
