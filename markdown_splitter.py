@@ -5,6 +5,7 @@ from langchain_core.documents import Document
 from langchain_text_splitters.base import Language
 from langchain_experimental.text_splitter import SemanticChunker
 from langchain_huggingface.embeddings import HuggingFaceEmbeddings
+from langchain_openai.embeddings import OpenAIEmbeddings
 import pathway as pw
 
 
@@ -37,23 +38,18 @@ class ExperimentalMarkdownSyntaxTextSplitter:
 
         self.return_each_line = return_each_line
 
-    def transform_documents(self, text: List[Document]) -> List[str]:
+    def transform_documents(self, text: List[Document]):
         final = []
         for d in text:
             self.chunks = self.split(d.page_content)
-            #        print(self.chunks)
             text_splitter = SemanticChunker(
-                embeddings=HuggingFaceEmbeddings(
-                    model_name="Snowflake/snowflake-arctic-embed-m"
-                )
+                embeddings=OpenAIEmbeddings(model="text-embedding-3-small"),
             )
 
             for chunk in self.chunks:
-                #            print(f"Chunk content: {chunk.page_content}")
                 if not chunk.page_content.strip():
                     continue
                 split_content = text_splitter.split_text(chunk.page_content)
-                #            print(split_content)
                 for i in range(len(split_content)):
                     if split_content[i] and len(split_content[i]) > 0:
                         final.append(
@@ -212,6 +208,7 @@ class ExperimentalMarkdownSyntaxTextSplitter:
 
 class MarkdownSplitter(pw.UDF):
     def __init__(self):
+        super().__init__()
         self.splitter = ExperimentalMarkdownSyntaxTextSplitter()
 
     def __wrapped__(self, txt: str, **kwargs) -> list[tuple[str, dict]]:
@@ -219,5 +216,5 @@ class MarkdownSplitter(pw.UDF):
         chunks = self.splitter.transform_documents([doc])
         splits = []
         for chunk in chunks:
-            splits.append((chunk, {}))
+            splits.append((chunk.page_content, {}))
         return splits
