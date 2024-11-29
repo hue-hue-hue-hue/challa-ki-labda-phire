@@ -4,6 +4,7 @@ from pathway.xpacks.llm.splitters import TokenCountSplitter
 from pathway.xpacks.llm.vector_store import VectorStoreServer
 from pathway.xpacks.llm.parsers import ParseUnstructured
 import sys
+from splade_embed import SpladeEmbedder
 
 logging.basicConfig(stream=sys.stderr, level=logging.WARN, force=True)
 
@@ -24,7 +25,8 @@ PATHWAY_PORT = 8765
 PATHWAY_HOST = "127.0.0.1"
 
 text_splitter = TokenCountSplitter(min_tokens=1000, max_tokens=1500)
-embedder = SentenceTransformerEmbedder(model="paraphrase-MiniLM-L6-v2")
+# embedder = SentenceTransformerEmbedder(model="paraphrase-MiniLM-L6-v2")
+embedder = SpladeEmbedder(model="naver/splade-cocondenser-ensembledistil")
 parser = ParseUnstructured()
 
 vector_server = VectorStoreServer(
