@@ -2,9 +2,10 @@ import logging
 from pathway.xpacks.llm.embedders import OpenAIEmbedder, SentenceTransformerEmbedder
 from pathway.xpacks.llm.splitters import TokenCountSplitter
 from pathway.xpacks.llm.vector_store import VectorStoreServer
-from pathway.xpacks.llm.parsers import ParseUnstructured
+from pathway.xpacks.llm.parsers import ParseUnstructured, OpenParse
 import sys
 from splade_embed import SpladeEmbedder
+from semantic_splitter import SemanticSplitterPathway
 
 logging.basicConfig(stream=sys.stderr, level=logging.WARN, force=True)
 
@@ -24,9 +25,8 @@ PATHWAY_PORT = 8765
 PATHWAY_HOST = "127.0.0.1"
 
 text_splitter = TokenCountSplitter(min_tokens=1000, max_tokens=1500)
-embedder = SentenceTransformerEmbedder(model="paraphrase-MiniLM-L6-v2")
-# embedder = SpladeEmbedder(model="naver/splade-cocondenser-ensembledistil")
-parser = ParseUnstructured()
+embedder = SentenceTransformerEmbedder(model="BAAI/bge-large-en")
+parser = OpenParse()
 
 vector_server = VectorStoreServer(
     *data_sources,

@@ -25,7 +25,7 @@ evaluator_llm = LangchainLLMWrapper(llm)
 
 
 # Pathway config
-PATHWAY_PORT = 8124
+PATHWAY_PORT = 8765
 PATHWAY_HOST = "127.0.0.1"
 
 client = VectorStoreClient(
