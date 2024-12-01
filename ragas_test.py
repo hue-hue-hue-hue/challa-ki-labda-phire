@@ -25,7 +25,7 @@ from ragas.metrics import (
 
 # Base configuration
 BASE_DIR = Path("./finance")
-BASE_NAME = "1234tatdqa-qa-dataset-snowflake-arctic-embed-l-unst-singleperdoc"
+BASE_NAME = "12345tatdqa-qa-dataset-snowflake-arctic-embed-l-unst-singleperdoc"
 QA_DATASET = BASE_DIR / "tatdqa_dataset.json"  # or .json
 METRIC_INPUT = BASE_DIR / f"{BASE_NAME}.json"
 llm = ChatOpenAI(model="gpt-3.5-turbo", max_retries=10)

@@ -16,7 +16,7 @@ QA_DATASET = BASE_DIR / "tatdqa_dataset.json"  # or .jsonl
 # in this file the actual question-answer pair (from tatdqa is stored), it is sent to the LLM with retrieved info and response is stored
 # This json has question (from dataset), answer (actual answer from the dataset [aka expected answer]), retrieved_contexts (top k context retrieved from vector store) and response (question+context -> LLM -> response)
 REFINED_DATASET_QA = (
-    BASE_DIR / "1234tatdqa-qa-dataset-snowflake-arctic-embed-l-unst-singleperdoc.json"
+    BASE_DIR / "12345tatdqa-qa-dataset-snowflake-arctic-embed-l-unst-singleperdoc.json"
 )
 
 
@@ -82,13 +82,13 @@ def load_or_create_results(data: list, max_samples: int = 5) -> dict:
     # ! The below loop is implemented for tatdqa dataset only, for other dataset change how we are extracting question, answer ,[evidence], [extras] from the dataset
     k = 0
     for item in data:
-        if k == 101:
+        if k == 51:
             break
         for question in item["questions"]:
             context = ""
             # Get RAG response for this question
             retireved_contexts = []
-            docs = client(question["question"], k=2)
+            docs = client(f"query: {question["question"]}", k=2)
             for doc in docs:
                 context += doc["text"] + "/n/n"
                 retireved_contexts.append(doc["text"])

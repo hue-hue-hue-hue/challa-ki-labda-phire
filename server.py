@@ -14,7 +14,7 @@ import pathway as pw
 data_sources = []
 data_sources.append(
     pw.io.fs.read(
-        "./documents",
+        "./dev",
         format="binary",
         mode="streaming",
         with_metadata=True,
@@ -25,8 +25,8 @@ PATHWAY_PORT = 8765
 PATHWAY_HOST = "127.0.0.1"
 
 text_splitter = TokenCountSplitter(min_tokens=1000, max_tokens=1500)
-embedder = SentenceTransformerEmbedder(model="BAAI/bge-large-en")
-parser = OpenParse()
+embedder = SentenceTransformerEmbedder(model="infgrad/stella-base-en-v2")
+parser = ParseUnstructured()
 
 vector_server = VectorStoreServer(
     *data_sources,
@@ -34,6 +34,7 @@ vector_server = VectorStoreServer(
     embedder=embedder,
     splitter=text_splitter,
 )
+print("Starting server")
 vector_server.run_server(
     host=PATHWAY_HOST, port=PATHWAY_PORT, threaded=True, with_cache=False
 )
