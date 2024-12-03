@@ -139,6 +139,7 @@ class SemanticSplitterPathway(UDF):
         minimum_chunk_size: int = 60,
         sentence_splitter: Callable[[str], List[str]] = split_by_spacy,
         splitter=SemanticSplitterPathway,
+        buffer_size: int = 2,
     ):
         super().__init__()
         self.breakpoint_threshold_type = breakpoint_threshold_type
@@ -151,6 +152,7 @@ class SemanticSplitterPathway(UDF):
             minimum_chunk_size=self.minimum_chunk_size,
             sentence_splitter=self.sentence_splitter,
             embed_model=embed_model1,
+            buffer_size=buffer_size,
         )
         self.doc_num = 0
 
