@@ -6,13 +6,15 @@ import numpy as np
 import spacy
 from llama_index.core.node_parser import SemanticSplitterNodeParser
 from llama_index.core import Document
+from linked_chunks import linking
 
 from llama_index.embeddings.openai import OpenAIEmbedding
+from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 
+embed_model1 = HuggingFaceEmbedding(
+    model_name="BAAI/bge-small-en-v1.5"
+)
 
-embed_model1 = OpenAIEmbedding()
-
-@dataclass
 class SentenceCombination(TypedDict):
     sentence: str
     index: int
@@ -152,11 +154,13 @@ class SemanticSplitterPathway(UDF):
             embed_model=embed_model1,
             buffer_size=buffer_size,
         )
+        self.doc_num = 0
 
     def __wrapped__(self, txt: str, **kwargs) -> list[tuple[str, dict]]:
         doc = Document(text=txt)
+        self.doc_num += 1
         chunks = self.splitter.get_nodes_from_documents([doc])
         splits = []
         for chunk in chunks:
             splits.append((chunk.get_text(), {}))
-        return splits
+        return linking(splits,self.doc_num)
